@@ -1,5 +1,5 @@
 from models.card import Card
-from config import Config
+from app.db_config import Config
 from pymongo import MongoClient
 import json
 

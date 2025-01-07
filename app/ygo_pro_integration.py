@@ -1,5 +1,4 @@
 import requests
-from models.card import Card
 
 API_URL = "https://db.ygoprodeck.com/api/v7/cardinfo.php"
 
@@ -75,11 +74,10 @@ class YGOProAPI:
 
         if response.status_code == 200:
             card_data = response.json().get('data', [])
-            cards = [Card.from_dict(card) for card in card_data]
             # print the name of all cards found
             #for card in cards:
                 #print(card.name)
-            return cards
+            return card_data
         else:
             print(f"Error fetching card data: {response.status_code}")
             return None

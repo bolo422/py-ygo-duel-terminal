@@ -55,3 +55,11 @@ class Card:
             "ygoprodeck_url": self.ygoprodeck_url,
             "imageUrl": self.imageUrl
         }
+
+    def __eq__(self, other):
+        if isinstance(other, Card):
+            return self.id == other.id
+        return False
+
+    def __hash__(self):
+        return hash(self.id)

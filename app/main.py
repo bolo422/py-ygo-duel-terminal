@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from flask import Flask, render_template
 from models.card import Card
-from config import Config
+from app.db_config import Config
 
 app = Flask(__name__)
 
