@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yu-Gi-Oh! Card Trunk</title>
+</head>
+<body>
+    <h1>Yu-Gi-Oh! Card Trunk</h1>
+    <ul>
+        {% for card in cards %}
+        <li>
+            <h2>{{ card.name }}</h2>
+            <p><strong>Type:</strong> {{ card.human_readable_type }}</p>
+            <p><strong>Attribute:</strong> {{ card.attribute }}</p>
+            <p><strong>ATK:</strong> {{ card.atk }} / <strong>DEF:</strong> {{ card.def_ }}</p>
+            <p>{{ card.desc }}</p>
+            <a href="{{ card.ygoprodeck_url }}">View on YGOPRODeck</a>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
