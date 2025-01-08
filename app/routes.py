@@ -66,6 +66,30 @@ def detail_cards():
 
     return jsonify(cards), 200
 
+@main.route('/banned', methods=['GET'])
+@user_required
+def get_banned():
+    list = {
+        "EDISON": ["55144522"]
+    }
+    return jsonify(list), 200
+
+@main.route('/semi_limited', methods=['GET'])
+@user_required
+def get_semi_limited():
+    list = {
+        "EDISON": ["29401950"]
+    }
+    return jsonify(list), 200
+
+@main.route('/limited', methods=['GET'])
+@user_required
+def get_limited():
+    list = {
+        "EDISON": ["5318639"]
+    }
+    return jsonify(list), 200
+
 @main.route('/get_trunk', methods=['GET'])
 @user_required
 def get_trunk():

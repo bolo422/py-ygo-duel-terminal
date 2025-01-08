@@ -13,7 +13,7 @@ class Card:
         self.level = level
         self.attribute = attribute
         self.ygoprodeck_url = ygoprodeck_url
-        self.imageUrl = self.build_image_url()  # Generate the image URL
+        self.imageUrl = self.build_image_url()
 
     def build_image_url(self):
         """Generate the image URL using the card's id."""
