@@ -1,77 +1,78 @@
-from pymongo import MongoClient
-from .deck import Deck
-from app.models.card import Card
-from app.card_search import search_card_by_id
-
 class Trunk:
-    def __init__(self, username, cards=None, deck=None):
+    def __init__(self, username, trunk_deck=None, main_deck=None, side_deck=None, extra_deck=None):
         self.username = username
-        self.cards = cards if cards else {}
-        self.deck = deck if deck else Deck()
+        self.trunk_deck = trunk_deck if trunk_deck else {}
+        self.main_deck = main_deck if main_deck else {}
+        self.side_deck = side_deck if side_deck else {}
+        self.extra_deck = extra_deck if extra_deck else {}
 
-    def add_card(self, card_id:int, quantity=1):
-        """Add a card to the trunk."""
-
-        card = search_card_by_id(card_id)
-
-        if card in self.cards:
-            self.cards[card] += quantity
-        else:
-            self.cards[card] = quantity
-
-    def remove_card(self, card_id:int, quantity=1):
-        """Remove a card from the trunk."""
-
-        card = search_card_by_id(card_id)
-
-        if card in self.cards:
-            if self.cards[card] > quantity:
-                self.cards[card] -= quantity
-            else:
-                del self.cards[card]
-        else:
-            print("Card not found in trunk.")
-
-    def to_dict(self):
-        """Convert Trunk object to dictionary."""
-        return {
-            "username": self.username,
-            "cards": {str(card.id): quantity for card, quantity in self.cards.items()},
-            "deck": self.deck.to_dict()
+    def _get_deck(self, deckType):
+        deck_map = {
+            "trunk": self.trunk_deck,
+            "trunk_deck": self.trunk_deck,
+            "main": self.main_deck,
+            "main_deck": self.main_deck,
+            "side": self.side_deck,
+            "side_deck": self.side_deck,
+            "extra": self.extra_deck,
+            "extra_deck": self.extra_deck
         }
-    
-    def to_detailed_dict(self):
-        """Convert Trunk object to a detailed dictionary with card details."""
-        detailed_cards = []
-        for card, quantity in self.cards.items():
-            card_dict = card.to_dict()
-            for _ in range(quantity):
-                detailed_cards.append(card_dict)
+        return deck_map.get(deckType)
 
-        return {
-            "username": self.username,
-            "cards": detailed_cards,
-            "deck": self.deck.to_detailed_dict()
-        }
-    
-    def get_all_cards_map(self):
-        """Get all cards in the trunk and deck."""
-        combined_map = self.cards.copy()
-        deck_map = self.deck.get_cards_map()
+    def add_card(self, id, quantity, deckType):
+        deck = self._get_deck(deckType)
+        if deck is not None:
+            deck[id] = deck.get(id, 0) + quantity
 
-        for card_id, quantity in deck_map.items():
-            if card_id in combined_map:
-                combined_map[card_id] += quantity
+    def remove_card_from_deck(self, id, quantity, deckType):
+        deck = self._get_deck(deckType)
+        if deck and id in deck:
+            if deck[id] > quantity:
+                deck[id] -= quantity
             else:
-                combined_map[card_id] = quantity
+                del deck[id]
 
-        return combined_map
+    def get_all_cards(self):
+        combined = {}
+        for deck in [self.trunk_deck, self.main_deck, self.side_deck, self.extra_deck]:
+            for id, quantity in deck.items():
+                combined[id] = combined.get(id, 0) + quantity
+        return combined
+
+    def get_cards(self, id, deckType):
+        deck = self._get_deck(deckType)
+        return deck.get(id, 0) if deck else 0
+
+    def move_cards(self, id, quantity, originDeckType, destinationDeckType):
+        id = str(id)
+        origin_deck = self._get_deck(originDeckType)
+        destination_deck = self._get_deck(destinationDeckType)
+
+        if id in origin_deck:
+            origin_quantity = origin_deck[id]
+            if origin_quantity > quantity:
+                origin_deck[id] -= quantity
+            else:
+                quantity = origin_quantity
+                del origin_deck[id]
+
+            destination_deck[id] = destination_deck.get(id, 0) + quantity
 
     @classmethod
     def from_dict(cls, data):
-        """Create a Trunk object from a dictionary."""
         return cls(
-            data["username"],
-            {search_card_by_id(int(card_id)): quantity for card_id, quantity in data["cards"].items()},
-            Deck.from_dict(data["deck"])
+            username=data["username"],
+            trunk_deck=data.get("trunk_deck", {}),
+            main_deck=data.get("main_deck", {}),
+            side_deck=data.get("side_deck", {}),
+            extra_deck=data.get("extra_deck", {})
         )
+
+    def to_dict(self):
+        return {
+            "username": self.username,
+            "trunk_deck": self.trunk_deck,
+            "main_deck": self.main_deck,
+            "side_deck": self.side_deck,
+            "extra_deck": self.extra_deck
+        }

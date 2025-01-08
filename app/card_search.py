@@ -1,5 +1,5 @@
 from app.ygo_pro_integration import YGOProAPI
-from app.crud.cards_crud import find_card_by_id, insert_card, find_card_by_name
+from app.crud.cards_crud import find_card_by_id, insert_card, find_card_by_name, find_cards_by_ids
 from app.models.card import Card
 
 def search_card_by_id(card_id):
@@ -24,6 +24,12 @@ def search_card_by_id(card_id):
             print("No card data found from API.")
 
     return card
+
+def search_cards_by_ids(card_ids):
+    """Search for cards by IDs."""
+    cards = find_cards_by_ids(card_ids)
+    cards = [Card.from_dict(card) for card in cards]
+    return cards
 
 def search_card_by_name(card_name):
     """Search for a card by name."""

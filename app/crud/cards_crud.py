@@ -7,6 +7,10 @@ def find_card_by_id(card_id):
     # convert id to number
     return cards_collection.find_one({"id": int(card_id)})
 
+def find_cards_by_ids(card_ids):
+    """Search for cards in the database by their IDs."""
+    return cards_collection.find({"id": {"$in": [int(card_id) for card_id in card_ids]}})
+
 def find_card_by_name(card_name):
     """Search for a card in the database by its name, case-insensitive."""
     return cards_collection.find_one({"name": {"$regex": card_name, "$options": "i"}})
