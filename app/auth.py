@@ -16,16 +16,25 @@ def decode_auth():
     return True, username, password
 
 def authenticate_user():
-    """Authenticate a user by username and password."""
+    """Authenticate a user by Authorization header."""
     valid, username, password = decode_auth()
     if not valid:
         return False
     user = users_collection.find_one({"username": username})
     return user["password"] == password
 
+def login_user():
+    """Authenticate a user by username and password. Return Authorization token if valid."""
+    username = request.json.get("username")
+    password = request.json.get("password")
+    user = users_collection.find_one({"username": username})
+    # if user is valid, return the basic token. If not valid return None
+    if user and user["password"] == password:
+        return "Basic " + base64.b64encode(f"{username}:{password}".encode('utf-8')).decode('utf-8')
+    return None
 
 def authenticate_adm():
-    """Authenticate a user by username and password, but retruns true only if the user is an admin."""
+    """Authenticate a user by Authorization header, but retruns true only if the user is an admin."""
     valid, username, password = decode_auth()
     if not valid:
         return False

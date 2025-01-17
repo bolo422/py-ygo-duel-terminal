@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, Blueprint
 from app.crud.trunk_crud import TrunkCRUD
-from app.auth import user_required, admin_required
+from app.auth import user_required, admin_required, login_user
 from app.card_search import search_card_by_id, search_cards_by_ids
 from app.db_config import Config
 from app.models.trunk import Trunk
@@ -170,6 +170,19 @@ def move_card():
 
     trunk_crud.update_trunk(username, trunk)
     return jsonify({"message": f"Moved {quantity} of card {card_id} from {source_deck} to {destination_deck}."}), 200
+
+@main.route('/login', methods=['POST'])
+def login():
+    """Route to login a user."""
+    # this method should check on users database and if login is valid, return a basic token representing the login:password
+    data = request.json
+    if 'username' not in data or 'password' not in data:
+        return jsonify({"error": "Missing required parameters"}), 400
+    
+    token = login_user()
+    if not token:
+        return jsonify({"error": "Invalid username or password"}), 401
+    return jsonify({"token": token}), 200
 
 ### ADMIN ROUTES ###
 
