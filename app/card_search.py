@@ -23,7 +23,7 @@ def search_card_by_id(card_id):
         else:
             print("No card data found from API.")
 
-    return card
+    return card.to_dict()
 
 def search_cards_by_ids(card_ids):
     """Search for cards by IDs."""
