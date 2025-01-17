@@ -12,3 +12,4 @@ class Config:
     cards_collection = db["cards"]
     trunk_collection = db["trunks"]
     users_collection = db["users"]
+    banlists_collection = db["banlists"]

@@ -4,6 +4,7 @@ from app.auth import user_required, admin_required, login_user
 from app.card_search import search_card_by_id, search_cards_by_ids
 from app.db_config import Config
 from app.models.trunk import Trunk
+from app.service.banlists_service import find_banlists, find_banlist, find_detailed_banlists,create_or_update_banlist, delete_banlist
 
 app = Flask(__name__)
 
@@ -38,7 +39,13 @@ def is_card_quantity_allowed(deck, deck_type):
 @main.route('/detail_card', methods=['GET'])
 @user_required
 def detail_card():
-    """Detail a card by id"""
+    """
+    Detail a card by id
+    Example:
+    curl --location 'http://localhost:5000/detail_card?id=73262676' \
+    --header 'Authorization: Basic ****'
+    """
+
     card_id = request.args.get('id')
     if not card_id:
         return jsonify({"error": "Missing 'id' parameter"}), 400
@@ -51,7 +58,12 @@ def detail_card():
 @main.route('/detail_cards', methods=['GET'])
 @user_required
 def detail_cards():
-    """Detail a cards by ids"""
+    """
+    Detail a cards by ids
+    Example:
+    curl --location 'http://localhost:5000/detail_cards?ids=73262676,9999999' \
+    --header 'Authorization: Basic ****'
+    """
     card_ids = request.args.get('ids')
     if not card_ids:
         return jsonify({"error": "Missing 'ids' parameter"}), 400
@@ -69,31 +81,77 @@ def detail_cards():
 @main.route('/banned', methods=['GET'])
 @user_required
 def get_banned():
-    list = {
-        "EDISON": ["55144522"]
-    }
-    return jsonify(list), 200
+    """
+    Get banned cards lists
+    Example:
+    curl --location --request GET 'http://localhost:5000/banned' \
+    --header 'Authorization: Basic ****'
+    """
+    return jsonify(find_banlists("BAN")), 200
 
 @main.route('/semi_limited', methods=['GET'])
 @user_required
 def get_semi_limited():
-    list = {
-        "EDISON": ["29401950"]
-    }
-    return jsonify(list), 200
+    """
+    Get semi-limited cards lists
+    Example:
+    curl --location --request GET 'http://localhost:5000/semi_limited' \
+    --header 'Authorization: Basic ****'
+    """
+    return jsonify(find_banlists("SEMI_LIMITED")), 200
 
 @main.route('/limited', methods=['GET'])
 @user_required
 def get_limited():
-    list = {
-        "EDISON": ["5318639"]
-    }
-    return jsonify(list), 200
+    """
+    Get limited cards lists
+    Example:
+    curl --location --request GET 'http://localhost:5000/limited' \
+    --header 'Authorization: Basic ****'
+    """
+    return jsonify(find_banlists("LIMITED")), 200
+
+@main.route('/detailed_banlist', methods=['GET'])
+@user_required
+def get_detailed_banlists():
+    """
+    Get detailed banlists
+    Name is optional, if not informed will return all banlists of informed type
+    Example:
+    curl --location --request GET 'http://localhost:5000/detailed_banlist?name=TCG%20Banlist&type=BAN' \
+    --header 'Authorization: Basic ****'
+    """
+
+    # not implemented yet
+    return jsonify({"error": "Not implemented yet"}), 501
+
+    name = request.args.get('name')
+    type = request.args.get('type')
+    if not type:
+        return jsonify({"error": "Missing 'type' parameter"}), 400
+    
+    if name:
+        banlist = find_banlist(name, type)
+        if not banlist:
+            return jsonify({"error": "Banlist not found"}), 404
+        banlist['_id'] = str(banlist['_id'])
+        return jsonify(banlist), 200
+    else:
+        banlists = find_detailed_banlists(type)
+        # fix _id to be a string
+        for banlist in banlists:
+            banlist['_id'] = str(banlist['_id'])
+        return jsonify(banlists), 200
 
 @main.route('/get_trunk', methods=['GET'])
 @user_required
 def get_trunk():
-    """Route to return a user's trunk."""
+    """
+    Route to return a user's trunk.
+    Example:
+    curl --location --request GET 'http://localhost:5000/get_trunk?username=player1' \
+    --header 'Authorization: Basic ****'
+    """
     username = request.args.get('username')
     if not username:
         return jsonify({"error": "Missing 'username' parameter"}), 400
@@ -109,7 +167,12 @@ def get_trunk():
 @main.route('/get_detailed_trunk', methods=['GET'])
 @user_required
 def get_detailed_trunk():
-    """Route to return a user's trunk with card details."""
+    """
+    Route to return a user's trunk with card details.
+    Example:
+    curl --location --request GET 'http://localhost:5000/get_detailed_trunk?username=player1' \
+    --header 'Authorization: Basic ****'
+    """
     username = request.args.get('username')
     if not username:
         return jsonify({"error": "Missing 'username' parameter"}), 400
@@ -137,7 +200,20 @@ def get_detailed_trunk():
 @main.route('/move_card', methods=['PATCH'])
 @user_required
 def move_card():
-    """Route to move a card between decks."""
+    """
+    Route to move a card between decks.
+    Example:
+    curl --location --request PATCH 'http://localhost:5000/move_card' \
+    --header 'Content-Type: application/json' \
+    --header 'Authorization: Basic ***' \
+    --data '{
+        "source_deck": "main",
+        "destination_deck": "side",
+        "card_id": 9999999,
+        "quantity": 1,
+        "username": "boloplayer"
+    }'
+    """
     data = request.json
     if 'source_deck' not in data or 'destination_deck' not in data or 'card_id' not in data or 'quantity' not in data or 'username' not in data:
         return jsonify({"error": "Missing required parameters"}), 400
@@ -173,7 +249,16 @@ def move_card():
 
 @main.route('/login', methods=['POST'])
 def login():
-    """Route to login a user."""
+    """
+    Route to login a user.
+    Example:
+    curl --location --request POST 'http://localhost:5000/login' \
+    --header 'Content-Type: application/json' \
+    --data '{
+        "username": "player1",
+        "password": "password
+    }'
+    """
     # this method should check on users database and if login is valid, return a basic token representing the login:password
     data = request.json
     if 'username' not in data or 'password' not in data:
@@ -291,3 +376,54 @@ def remove_card():
         return jsonify({"message": f"Removed {quantity} of card {card_id} from {deck_type}."}), 200
     else:
         return jsonify({"error": "Card not found in the specified deck."}), 404
+
+@main.route('/admin/create_banlist', methods=['POST'])
+@admin_required
+def create_banlist():
+    """Route to create a new banlist."""
+    data = request.json
+    if 'name' not in data or 'type' not in data or 'cards' not in data:
+        return jsonify({"error": "Missing required parameters"}), 400
+
+    name = data['name']
+    type = data['type']
+    cards = data['cards']
+    maxQuantityPerDeck = data.get('maxQuantityPerDeck')
+
+    if (find_banlist(name, type)):
+        return jsonify({"error": "Banlist already exists"}), 400
+    
+    create_or_update_banlist(name, type, cards, maxQuantityPerDeck)
+    created_banlist = find_banlist(name, type)
+    created_banlist['_id'] = str(created_banlist['_id'])
+    return jsonify(created_banlist), 201
+
+@main.route('/admin/update_banlist', methods=['PATCH'])
+@admin_required
+def update_banlist():
+    """Route to update a banlist."""
+    data = request.json
+    if 'name' not in data or 'type' not in data or 'cards' not in data:
+        return jsonify({"error": "Missing required parameters"}), 400
+
+    name = data['name']
+    type = data['type']
+    cards = data['cards']
+    maxQuantityPerDeck = data.get('maxQuantityPerDeck')
+
+    create_or_update_banlist(name, type, cards, maxQuantityPerDeck)
+    updated_banlist = find_banlist(name, type)
+    updated_banlist['_id'] = str(updated_banlist['_id'])
+    return jsonify(updated_banlist), 200
+
+@main.route('/admin/delete_banlist', methods=['DELETE'])
+@admin_required
+def delete_banlist_route():
+    """Route to delete a banlist."""
+    name = request.args.get('name')
+    type = request.args.get('type')
+    if not name or not type:
+        return jsonify({"error": "Missing required parameters"}), 400
+
+    delete_banlist(name, type)
+    return jsonify({"message": f"Banlist {name} deleted."}), 200
